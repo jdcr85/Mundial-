@@ -14,7 +14,7 @@
   --gold:#f2c14e; --gold2:#e6a833;
   --esp:#e0312e; --esp2:#f2c14e;
   --uru:#4ea6d6;
-  --can:#e8453c;
+  --can:#f0a93c;
   --live:#58d68d;
   --done:#5a7a68;
 }
@@ -54,7 +54,7 @@ header{
 .chip.on{background:var(--gold);border-color:var(--gold);color:#1a1408}
 .chip[data-flag="esp"].on{background:var(--esp);border-color:var(--esp);color:#fff}
 .chip[data-flag="uru"].on{background:var(--uru);border-color:var(--uru);color:#0a1410}
-.chip[data-flag="can"].on{background:var(--can);border-color:var(--can);color:#fff}
+.chip[data-flag="can"].on{background:var(--can);border-color:var(--can);color:#1a1408}
 
 /* ─── Status ─── */
 .status{
@@ -226,6 +226,24 @@ section.on{display:block}
 body{padding-top:env(safe-area-inset-top)}
 header{padding-top:calc(14px + env(safe-area-inset-top))}
 
+/* ─── Selector de favoritos ─── */
+.chip.fav-pick{background:transparent;border-color:var(--gold);color:var(--gold)}
+.fav-ovl{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:120;display:none;align-items:flex-end;justify-content:center}
+.fav-ovl.show{display:flex}
+.fav-sheet{
+  background:var(--card2);border-radius:18px 18px 0 0;padding:20px;width:100%;max-width:480px;
+  border-top:1px solid var(--line);max-height:88vh;overflow-y:auto;
+  padding-bottom:max(20px,env(safe-area-inset-bottom));
+}
+.fav-sheet h3{margin-bottom:4px;font-size:18px}
+.fav-sheet .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+.fav-sheet .sub.warn{color:var(--gold)}
+.fav-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.fav-tbtn{
+  border:1px solid var(--line);background:var(--card);color:var(--chalk);border-radius:999px;
+  padding:7px 11px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;
+}
+.fav-tbtn.sel{background:var(--gold);color:#1a1408;border-color:var(--gold)}
 </style>
 <!-- Modo aplicación en móvil -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -246,9 +264,8 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
   <div class="chips" id="chips">
     <button class="chip" data-filter="today">Hoy</button>
     <button class="chip" data-filter="moon">🌙 Antes 24:00</button>
-    <button class="chip" data-filter="esp" data-flag="esp">🇪🇸 España</button>
-    <button class="chip" data-filter="uru" data-flag="uru">🇺🇾 Uruguay</button>
-    <button class="chip" data-filter="can" data-flag="can">🇨🇦 Canadá</button>
+    <span id="favChips"></span>
+    <button class="chip fav-pick" id="favPick">⭐ Favoritos</button>
   </div>
 </header>
 
@@ -290,6 +307,18 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
       <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
       <button class="btn btn-danger" id="modalClear">Borrar</button>
       <button class="btn btn-primary" id="modalSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="fav-ovl" id="favOvl">
+  <div class="fav-sheet">
+    <h3>⭐ Tus equipos favoritos</h3>
+    <p class="sub" id="favCount">Elige hasta 3</p>
+    <div class="fav-grid" id="favGrid"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="favCancel">Cancelar</button>
+      <button class="btn btn-primary" id="favSave">Guardar</button>
     </div>
   </div>
 </div>
@@ -414,7 +443,45 @@ MATCHES.forEach(m=>{
   if(!m.a.p) KEY_MAP[m.a.k]=m.a.k;
 });
 
-const FAV_ESP=['Spain'], FAV_URU=['Uruguay'], FAV_CAN=['Canada'];
+const DEFAULT_FAVS=['Spain','Uruguay','Canada'];
+let FAV_ESP=[], FAV_URU=[], FAV_CAN=[];
+function refreshFavSlots(){
+  FAV_ESP = state.favs[0] ? [state.favs[0]] : [];
+  FAV_URU = state.favs[1] ? [state.favs[1]] : [];
+  FAV_CAN = state.favs[2] ? [state.favs[2]] : [];
+}
+// Lista de las 48 selecciones (deducida de los partidos de grupos)
+const ALL_TEAMS = (()=>{
+  const seen={}, list=[];
+  MATCHES.forEach(m=>{ [m.h,m.a].forEach(t=>{
+    if(!t.p && !seen[t.k]){ seen[t.k]=1; list.push({n:t.n,c:t.c,k:t.k}); }
+  }); });
+  return list.sort((a,b)=>a.n.localeCompare(b.n,'es'));
+})();
+function teamByKey(k){ return ALL_TEAMS.find(t=>t.k===k); }
+// Banderas (código FIFA -> emoji)
+const ISO2={MEX:'MX',RSA:'ZA',KOR:'KR',CZE:'CZ',CAN:'CA',BIH:'BA',USA:'US',PAR:'PY',QAT:'QA',SUI:'CH',
+BRA:'BR',MAR:'MA',HAI:'HT',AUS:'AU',TUR:'TR',GER:'DE',CUW:'CW',NED:'NL',JPN:'JP',CIV:'CI',ECU:'EC',
+SWE:'SE',TUN:'TN',ESP:'ES',CPV:'CV',BEL:'BE',EGY:'EG',KSA:'SA',URU:'UY',IRN:'IR',NZL:'NZ',FRA:'FR',
+SEN:'SN',IRQ:'IQ',NOR:'NO',ARG:'AR',ALG:'DZ',AUT:'AT',JOR:'JO',POR:'PT',COD:'CD',CRO:'HR',GHA:'GH',
+PAN:'PA',UZB:'UZ',COL:'CO'};
+function tagFlag(str){ return String.fromCodePoint(0x1F3F4, ...[...str].map(c=>0xE0000+c.charCodeAt(0)), 0xE007F); }
+const SPECIAL_FLAGS={ENG:tagFlag('gbeng'),SCO:tagFlag('gbsct'),WAL:tagFlag('gbwls')};
+function flagOf(c){
+  if(SPECIAL_FLAGS[c]) return SPECIAL_FLAGS[c];
+  const iso=ISO2[c]; if(!iso) return '\u{1F3F3}\u{FE0F}';
+  return String.fromCodePoint(...[...iso].map(ch=>0x1F1E6-65+ch.charCodeAt(0)));
+}
+const FAV_SLOTS=['esp','uru','can'];
+function renderFavChips(){
+  let html='';
+  state.favs.forEach((k,i)=>{
+    const t=teamByKey(k); if(!t) return;
+    const on=activeFilters.has(FAV_SLOTS[i])?'on':'';
+    html+=`<button class="chip ${on}" data-filter="${FAV_SLOTS[i]}" data-flag="${FAV_SLOTS[i]}">${flagOf(t.c)} ${t.n}</button>`;
+  });
+  document.getElementById('favChips').innerHTML=html;
+}
 const PHASE_LABELS={
   r32:{name:'Dieciseisavos de final',dates:'28 jun – 4 jul'},
   r16:{name:'Octavos de final',dates:'4 – 7 jul'},
@@ -434,10 +501,14 @@ let editingId=null;
 function loadState(){
   try{
     const s=JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if(s && s.results) return s;
+    if(s && s.results){
+      if(!Array.isArray(s.favs)) s.favs=[...DEFAULT_FAVS];
+      if(!s.manual) s.manual={};
+      return s;
+    }
   }catch(e){}
   // primera vez: cargar precargados
-  return {results: {...PRELOADED}, manual:{}};
+  return {results: {...PRELOADED}, manual:{}, favs:[...DEFAULT_FAVS]};
 }
 function saveState(){
   try{localStorage.setItem(STORAGE_KEY, JSON.stringify(state));}catch(e){}
@@ -789,23 +860,56 @@ function showStatus(msg, type){
 }
 
 // ═══════ FILTROS Y TABS ═══════
-document.querySelectorAll('.chip').forEach(c=>{
-  c.onclick = ()=>{
-    const f = c.dataset.filter;
-    if(activeFilters.has(f)){
-      activeFilters.delete(f);
-      c.classList.remove('on');
-    } else {
-      activeFilters.add(f);
-      c.classList.add('on');
-    }
-    if(activeView!=='agenda'){
-      activeView='agenda';
-      updateTabs();
-    }
-    render();
-  };
+document.getElementById('chips').addEventListener('click', e=>{
+  const c = e.target.closest('.chip');
+  if(!c) return;
+  if(c.id==='favPick'){ openFavSelector(); return; }
+  const f = c.dataset.filter;
+  if(!f) return;
+  if(activeFilters.has(f)){ activeFilters.delete(f); c.classList.remove('on'); }
+  else { activeFilters.add(f); c.classList.add('on'); }
+  if(activeView!=='agenda'){ activeView='agenda'; updateTabs(); }
+  render();
 });
+
+// ═══════ SELECTOR DE FAVORITOS ═══════
+let favTmp=[], favCountTimer;
+function updateFavCount(msg){
+  const el=document.getElementById('favCount');
+  if(msg){ el.textContent=msg; el.className='sub warn'; clearTimeout(favCountTimer);
+    favCountTimer=setTimeout(()=>updateFavCount(),1600); return; }
+  el.textContent=`Elige hasta 3 · llevas ${favTmp.length}`; el.className='sub';
+}
+function openFavSelector(){
+  favTmp = state.favs.slice(0,3);
+  document.getElementById('favGrid').innerHTML = ALL_TEAMS.map(t=>{
+    const sel = favTmp.includes(t.k)?'sel':'';
+    return `<button class="fav-tbtn ${sel}" data-k="${t.k}">${flagOf(t.c)} ${t.n}</button>`;
+  }).join('');
+  updateFavCount();
+  document.getElementById('favOvl').classList.add('show');
+}
+document.getElementById('favGrid').addEventListener('click', e=>{
+  const b=e.target.closest('.fav-tbtn'); if(!b) return;
+  const k=b.dataset.k;
+  if(favTmp.includes(k)){ favTmp=favTmp.filter(x=>x!==k); b.classList.remove('sel'); }
+  else { if(favTmp.length>=3){ updateFavCount('Máximo 3: quita uno antes de añadir otro'); return; }
+    favTmp.push(k); b.classList.add('sel'); }
+  updateFavCount();
+});
+document.getElementById('favCancel').onclick = ()=>document.getElementById('favOvl').classList.remove('show');
+document.getElementById('favOvl').addEventListener('click', e=>{
+  if(e.target.id==='favOvl') document.getElementById('favOvl').classList.remove('show');
+});
+document.getElementById('favSave').onclick = ()=>{
+  state.favs = favTmp.slice(0,3);
+  refreshFavSlots();
+  FAV_SLOTS.forEach((sl,i)=>{ if(!state.favs[i]) activeFilters.delete(sl); });
+  saveState();
+  renderFavChips();
+  document.getElementById('favOvl').classList.remove('show');
+  render();
+};
 function updateTabs(){
   document.querySelectorAll('.tab').forEach(t=>{
     t.classList.toggle('on', t.dataset.view===activeView);
@@ -824,6 +928,8 @@ document.querySelectorAll('.tab').forEach(t=>{
 });
 
 // ═══════ INIT ═══════
+refreshFavSlots();
+renderFavChips();
 render();
 
 // Auto-sync al abrir, suave y silencioso (los pre-cargados ya cubren lo importante).
