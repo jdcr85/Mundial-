@@ -1,21 +1,57 @@
 name: Compilar APK
+
 on:
   push:
+    branches: [ main, master ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -o proyecto.zip -d proyecto
+
+      - name: Descomprimir proyecto base
+        run: |
+          unzip -o proyecto.zip -d proyecto
+          echo "Estructura del proyecto:"
+          ls -la proyecto/
+          ls -la proyecto/app/src/main/assets/ || true
+
+      - name: Sustituir el HTML por la versión nueva del repo
+        run: |
+          if [ -f index.html ]; then
+            echo "Encontrado index.html en raíz → lo meto en el proyecto"
+            cp index.html proyecto/app/src/main/assets/index.html
+            wc -l proyecto/app/src/main/assets/index.html
+          else
+            echo "No hay index.html en raíz, uso el que viene en el zip"
+          fi
+
+      - name: Incrementar versionCode automáticamente
+        run: |
+          # Usamos el número del run para que cada APK tenga un versionCode mayor que el anterior
+          # +200 para asegurar que es mayor que cualquier versionCode previo
+          NEW_VC=$((${{ github.run_number }} + 200))
+          NEW_VN="1.$((${{ github.run_number }} + 2))"
+          echo "Nuevo versionCode: $NEW_VC, versionName: $NEW_VN"
+          sed -i "s/versionCode [0-9]*/versionCode $NEW_VC/" proyecto/app/build.gradle
+          sed -i "s/versionName \"[^\"]*\"/versionName \"$NEW_VN\"/" proyecto/app/build.gradle
+          grep -E "versionCode|versionName" proyecto/app/build.gradle
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - uses: gradle/actions/setup-gradle@v4
-      - run: gradle assembleDebug
+
+      - name: Compilar APK
+        run: gradle assembleDebug
         working-directory: proyecto
-      - uses: actions/upload-artifact@v4
+
+      - name: Subir APK como artefacto
+        uses: actions/upload-artifact@v4
         with:
           name: mundial2026-apk
           path: proyecto/app/build/outputs/apk/debug/app-debug.apk
