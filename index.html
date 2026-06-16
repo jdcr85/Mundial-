@@ -14,7 +14,7 @@
   --gold:#f2c14e; --gold2:#e6a833;
   --esp:#e0312e; --esp2:#f2c14e;
   --uru:#4ea6d6;
-  --can:#f0a93c;
+  --can:#e8453c;
   --live:#58d68d;
   --done:#5a7a68;
 }
@@ -44,17 +44,21 @@ header{
 .sync.loading .spin{animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-ms-overflow-style:none}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-ms-overflow-style:none;flex-wrap:nowrap}
 .chips::-webkit-scrollbar{display:none}
 .chip{
-  flex-shrink:0;background:var(--card);color:var(--chalk);border:1px solid var(--line);
-  padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;
-  font-family:inherit;display:flex;align-items:center;gap:5px;
+  flex:0 0 auto;background:var(--card);color:var(--chalk);border:1px solid var(--line);
+  padding:0 12px;height:32px;border-radius:16px;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:inherit;display:inline-flex;align-items:center;gap:5px;line-height:1;
+  white-space:nowrap;
 }
+.chip .flag{font-size:14px;line-height:1}
 .chip.on{background:var(--gold);border-color:var(--gold);color:#1a1408}
-.chip[data-flag="esp"].on{background:var(--esp);border-color:var(--esp);color:#fff}
-.chip[data-flag="uru"].on{background:var(--uru);border-color:var(--uru);color:#0a1410}
-.chip[data-flag="can"].on{background:var(--can);border-color:var(--can);color:#1a1408}
+.chip.fav-slot-0.on{background:var(--esp);border-color:var(--esp);color:#fff}
+.chip.fav-slot-1.on{background:var(--uru);border-color:var(--uru);color:#0a1410}
+.chip.fav-slot-2.on{background:var(--gold);border-color:var(--gold);color:#1a1408}
+.chip.fav-pick{background:transparent;border-style:dashed;color:var(--gold)}
+.chip.fav-pick:hover{border-color:var(--gold)}
 
 /* ─── Status ─── */
 .status{
@@ -86,10 +90,12 @@ main{padding:6px 14px 20px;max-width:720px;margin:0 auto}
 .match::before{
   content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:transparent;
 }
-.match.fav-esp::before{background:linear-gradient(180deg,var(--esp) 50%,var(--esp2) 50%)}
-.match.fav-uru::before{background:var(--uru)}
-.match.fav-can::before{background:var(--can)}
-.match.fav-esp.fav-uru::before{background:linear-gradient(180deg,var(--esp) 0%,var(--esp) 33%,var(--esp2) 33%,var(--esp2) 66%,var(--uru) 66%,var(--uru) 100%)}
+.match.fav-slot-0::before{background:var(--esp)}
+.match.fav-slot-1::before{background:var(--uru)}
+.match.fav-slot-2::before{background:var(--gold)}
+.match.fav-slot-0.fav-slot-1::before{background:linear-gradient(180deg,var(--esp) 50%,var(--uru) 50%)}
+.match.fav-slot-0.fav-slot-2::before{background:linear-gradient(180deg,var(--esp) 50%,var(--gold) 50%)}
+.match.fav-slot-1.fav-slot-2::before{background:linear-gradient(180deg,var(--uru) 50%,var(--gold) 50%)}
 .match.played{background:var(--card2)}
 .match.live::before{background:var(--live)}
 
@@ -103,7 +109,10 @@ main{padding:6px 14px 20px;max-width:720px;margin:0 auto}
 .team-name{
   font-weight:600;font-size:15px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;
+  display:flex;align-items:center;gap:7px;
 }
+.team-name .flag{font-size:17px;line-height:1;flex-shrink:0}
+.team-name .nm{overflow:hidden;text-overflow:ellipsis}
 .team-name .code{
   font-size:10px;color:var(--muted);margin-left:6px;font-weight:600;
   letter-spacing:0.05em;font-family:ui-monospace,monospace;
@@ -145,16 +154,17 @@ main{padding:6px 14px 20px;max-width:720px;margin:0 auto}
 }
 .group-table th:first-child{text-align:left;padding-left:0}
 .group-table td{padding:5px 2px;text-align:center;font-variant-numeric:tabular-nums}
-.group-table td:first-child{text-align:left;font-weight:600;padding-left:0}
+.group-table td:first-child{text-align:left;font-weight:600;padding-left:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.group-table td .flag{font-size:14px;margin-right:5px;vertical-align:-1px}
 .group-table td.pts{font-weight:800;color:var(--gold)}
 .group-table tr.qualified td{color:var(--chalk)}
 .group-table tr.qualified td:first-child::before{
   content:'';display:inline-block;width:3px;height:14px;background:var(--live);
   vertical-align:middle;margin-right:6px;border-radius:2px;
 }
-.group-table tr.fav-esp td:first-child{color:var(--esp2)}
-.group-table tr.fav-uru td:first-child{color:var(--uru)}
-.group-table tr.fav-can td:first-child{color:var(--can)}
+.group-table tr.fav-slot-0 td:first-child{color:#ff8a87}
+.group-table tr.fav-slot-1 td:first-child{color:var(--uru)}
+.group-table tr.fav-slot-2 td:first-child{color:var(--gold)}
 
 /* ─── Knockout view ─── */
 .ko-phase{margin-bottom:24px}
@@ -226,24 +236,20 @@ section.on{display:block}
 body{padding-top:env(safe-area-inset-top)}
 header{padding-top:calc(14px + env(safe-area-inset-top))}
 
-/* ─── Selector de favoritos ─── */
-.chip.fav-pick{background:transparent;border-color:var(--gold);color:var(--gold)}
-.fav-ovl{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:120;display:none;align-items:flex-end;justify-content:center}
-.fav-ovl.show{display:flex}
-.fav-sheet{
-  background:var(--card2);border-radius:18px 18px 0 0;padding:20px;width:100%;max-width:480px;
-  border-top:1px solid var(--line);max-height:88vh;overflow-y:auto;
-  padding-bottom:max(20px,env(safe-area-inset-bottom));
-}
-.fav-sheet h3{margin-bottom:4px;font-size:18px}
-.fav-sheet .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
-.fav-sheet .sub.warn{color:var(--gold)}
-.fav-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+/* ─── Modal Favoritos ─── */
+.fav-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;max-height:50vh;overflow-y:auto;padding:2px}
 .fav-tbtn{
-  border:1px solid var(--line);background:var(--card);color:var(--chalk);border-radius:999px;
-  padding:7px 11px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--chalk);border-radius:16px;
+  padding:0 12px;height:32px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;line-height:1;white-space:nowrap;
 }
-.fav-tbtn.sel{background:var(--gold);color:#1a1408;border-color:var(--gold)}
+.fav-tbtn .flag{font-size:15px;line-height:1}
+.fav-tbtn.sel-0{background:var(--esp);border-color:var(--esp);color:#fff}
+.fav-tbtn.sel-1{background:var(--uru);border-color:var(--uru);color:#0a1410}
+.fav-tbtn.sel-2{background:var(--gold);border-color:var(--gold);color:#1a1408}
+.fav-info{color:var(--muted);font-size:12px;margin-bottom:10px}
+.fav-info.warn{color:var(--gold)}
+
 </style>
 <!-- Modo aplicación en móvil -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -263,9 +269,9 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
   </div>
   <div class="chips" id="chips">
     <button class="chip" data-filter="today">Hoy</button>
-    <button class="chip" data-filter="moon">🌙 Antes 24:00</button>
+    <button class="chip" data-filter="moon"><span class="flag">🌙</span>Antes 24:00</button>
     <span id="favChips"></span>
-    <button class="chip fav-pick" id="favPick">⭐ Favoritos</button>
+    <button class="chip fav-pick" id="favPickBtn">★ Favoritos</button>
   </div>
 </header>
 
@@ -292,6 +298,18 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
   </button>
 </nav>
 
+<div class="modal-bg" id="favModal">
+  <div class="modal">
+    <h3>★ Tus equipos favoritos</h3>
+    <p class="sub" id="favInfo">Elige hasta 3</p>
+    <div class="fav-grid" id="favGrid"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="favCancel">Cancelar</button>
+      <button class="btn btn-primary" id="favSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal">
   <div class="modal">
     <h3>Resultado</h3>
@@ -311,20 +329,25 @@ header{padding-top:calc(14px + env(safe-area-inset-top))}
   </div>
 </div>
 
-<div class="fav-ovl" id="favOvl">
-  <div class="fav-sheet">
-    <h3>⭐ Tus equipos favoritos</h3>
-    <p class="sub" id="favCount">Elige hasta 3</p>
-    <div class="fav-grid" id="favGrid"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="favCancel">Cancelar</button>
-      <button class="btn btn-primary" id="favSave">Guardar</button>
-    </div>
-  </div>
-</div>
-
 <script>
 // ═══════ DATOS ═══════
+// Banderas emoji por clave de equipo
+const FLAGS = {
+  'Mexico':'🇲🇽','South Africa':'🇿🇦','South Korea':'🇰🇷','Czech Republic':'🇨🇿',
+  'Canada':'🇨🇦','Bosnia & Herzegovina':'🇧🇦','Qatar':'🇶🇦','Switzerland':'🇨🇭',
+  'Brazil':'🇧🇷','Morocco':'🇲🇦','Haiti':'🇭🇹','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  'USA':'🇺🇸','Paraguay':'🇵🇾','Australia':'🇦🇺','Turkey':'🇹🇷',
+  'Germany':'🇩🇪','Curaçao':'🇨🇼','Ivory Coast':'🇨🇮','Ecuador':'🇪🇨',
+  'Netherlands':'🇳🇱','Japan':'🇯🇵','Sweden':'🇸🇪','Tunisia':'🇹🇳',
+  'Belgium':'🇧🇪','Egypt':'🇪🇬','Iran':'🇮🇷','New Zealand':'🇳🇿',
+  'Spain':'🇪🇸','Cape Verde':'🇨🇻','Saudi Arabia':'🇸🇦','Uruguay':'🇺🇾',
+  'France':'🇫🇷','Senegal':'🇸🇳','Iraq':'🇮🇶','Norway':'🇳🇴',
+  'Argentina':'🇦🇷','Algeria':'🇩🇿','Austria':'🇦🇹','Jordan':'🇯🇴',
+  'Portugal':'🇵🇹','DR Congo':'🇨🇩','Uzbekistan':'🇺🇿','Colombia':'🇨🇴',
+  'England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Croatia':'🇭🇷','Ghana':'🇬🇭','Panama':'🇵🇦'
+};
+function flag(k){return FLAGS[k]||'⚽';}
+
 const MATCHES = [
   {id:1,ph:"group",g:"A",d:"2026-06-11",t:"21:00",h:{n:"México",c:"MEX",k:"Mexico"},a:{n:"Sudáfrica",c:"RSA",k:"South Africa"},v:{c:"Ciudad de México",s:"Estadio Azteca"}},
   {id:2,ph:"group",g:"A",d:"2026-06-12",t:"04:00",h:{n:"Corea del Sur",c:"KOR",k:"South Korea"},a:{n:"R. Checa",c:"CZE",k:"Czech Republic"},v:{c:"Guadalajara",s:"Estadio Akron"}},
@@ -443,44 +466,10 @@ MATCHES.forEach(m=>{
   if(!m.a.p) KEY_MAP[m.a.k]=m.a.k;
 });
 
-const DEFAULT_FAVS=['Spain','Uruguay','Canada'];
-let FAV_ESP=[], FAV_URU=[], FAV_CAN=[];
-function refreshFavSlots(){
-  FAV_ESP = state.favs[0] ? [state.favs[0]] : [];
-  FAV_URU = state.favs[1] ? [state.favs[1]] : [];
-  FAV_CAN = state.favs[2] ? [state.favs[2]] : [];
-}
-// Lista de las 48 selecciones (deducida de los partidos de grupos)
-const ALL_TEAMS = (()=>{
-  const seen={}, list=[];
-  MATCHES.forEach(m=>{ [m.h,m.a].forEach(t=>{
-    if(!t.p && !seen[t.k]){ seen[t.k]=1; list.push({n:t.n,c:t.c,k:t.k}); }
-  }); });
-  return list.sort((a,b)=>a.n.localeCompare(b.n,'es'));
-})();
-function teamByKey(k){ return ALL_TEAMS.find(t=>t.k===k); }
-// Banderas (código FIFA -> emoji)
-const ISO2={MEX:'MX',RSA:'ZA',KOR:'KR',CZE:'CZ',CAN:'CA',BIH:'BA',USA:'US',PAR:'PY',QAT:'QA',SUI:'CH',
-BRA:'BR',MAR:'MA',HAI:'HT',AUS:'AU',TUR:'TR',GER:'DE',CUW:'CW',NED:'NL',JPN:'JP',CIV:'CI',ECU:'EC',
-SWE:'SE',TUN:'TN',ESP:'ES',CPV:'CV',BEL:'BE',EGY:'EG',KSA:'SA',URU:'UY',IRN:'IR',NZL:'NZ',FRA:'FR',
-SEN:'SN',IRQ:'IQ',NOR:'NO',ARG:'AR',ALG:'DZ',AUT:'AT',JOR:'JO',POR:'PT',COD:'CD',CRO:'HR',GHA:'GH',
-PAN:'PA',UZB:'UZ',COL:'CO'};
-function tagFlag(str){ return String.fromCodePoint(0x1F3F4, ...[...str].map(c=>0xE0000+c.charCodeAt(0)), 0xE007F); }
-const SPECIAL_FLAGS={ENG:tagFlag('gbeng'),SCO:tagFlag('gbsct'),WAL:tagFlag('gbwls')};
-function flagOf(c){
-  if(SPECIAL_FLAGS[c]) return SPECIAL_FLAGS[c];
-  const iso=ISO2[c]; if(!iso) return '\u{1F3F3}\u{FE0F}';
-  return String.fromCodePoint(...[...iso].map(ch=>0x1F1E6-65+ch.charCodeAt(0)));
-}
-const FAV_SLOTS=['esp','uru','can'];
-function renderFavChips(){
-  let html='';
-  state.favs.forEach((k,i)=>{
-    const t=teamByKey(k); if(!t) return;
-    const on=activeFilters.has(FAV_SLOTS[i])?'on':'';
-    html+=`<button class="chip ${on}" data-filter="${FAV_SLOTS[i]}" data-flag="${FAV_SLOTS[i]}">${flagOf(t.c)} ${t.n}</button>`;
-  });
-  document.getElementById('favChips').innerHTML=html;
+const DEFAULT_FAVS = ['Spain','Uruguay','Canada'];
+function favSlot(teamKey){
+  // devuelve 0,1,2 si el equipo está en favs, o -1
+  return (state.favs || []).indexOf(teamKey);
 }
 const PHASE_LABELS={
   r32:{name:'Dieciseisavos de final',dates:'28 jun – 4 jul'},
@@ -502,12 +491,11 @@ function loadState(){
   try{
     const s=JSON.parse(localStorage.getItem(STORAGE_KEY));
     if(s && s.results){
-      if(!Array.isArray(s.favs)) s.favs=[...DEFAULT_FAVS];
-      if(!s.manual) s.manual={};
+      if(!Array.isArray(s.favs)) s.favs = [...DEFAULT_FAVS];
+      if(!s.manual) s.manual = {};
       return s;
     }
   }catch(e){}
-  // primera vez: cargar precargados
   return {results: {...PRELOADED}, manual:{}, favs:[...DEFAULT_FAVS]};
 }
 function saveState(){
@@ -532,10 +520,17 @@ function isMoon(m){
   const [h]=m.t.split(':').map(Number);
   return h>=13 && h<=22;
 }
-function isFav(m, key){
-  if(m.h.p || m.a.p) return false;
-  const arr = key==='esp'?FAV_ESP : key==='uru'?FAV_URU : key==='can'?FAV_CAN : [];
-  return arr.includes(m.h.k) || arr.includes(m.a.k);
+function favSlotsInMatch(m){
+  // devuelve array de slots (0,1,2) cuyo equipo aparece en el partido
+  if(m.h.p || m.a.p) return [];
+  const r = [];
+  const f = state.favs || [];
+  if(f.indexOf(m.h.k) >= 0) r.push(f.indexOf(m.h.k));
+  if(f.indexOf(m.a.k) >= 0) r.push(f.indexOf(m.a.k));
+  return [...new Set(r)];
+}
+function isFav(m){
+  return favSlotsInMatch(m).length > 0;
 }
 function getResult(id){
   return state.results[id];
@@ -558,9 +553,7 @@ function matchCard(m){
   const played = !!r;
   const classes = ['match'];
   if(played) classes.push('played');
-  if(isFav(m,'esp')) classes.push('fav-esp');
-  if(isFav(m,'uru')) classes.push('fav-uru');
-  if(isFav(m,'can')) classes.push('fav-can');
+  favSlotsInMatch(m).forEach(s => classes.push('fav-slot-'+s));
 
   const t1 = m.h, t2 = m.a;
   const loser1 = played && r[0]<r[1];
@@ -572,6 +565,11 @@ function matchCard(m){
 
   const moonChip = isMoon(m) ? `<div class="moon">🌙</div>` : '';
 
+  const teamHTML = (t) => {
+    if(t.p) return `<span class="team-name placeholder"><span class="nm">${t.n}</span></span>`;
+    return `<span class="team-name"><span class="flag">${flag(t.k)}</span><span class="nm">${t.n}</span><span class="code">${t.c}</span></span>`;
+  };
+
   return `<div class="${classes.join(' ')}" data-id="${m.id}">
     <div class="time-col">
       <div class="time">${m.t}</div>
@@ -579,11 +577,11 @@ function matchCard(m){
     </div>
     <div class="teams">
       <div class="team-row ${loser1?'loser':''}">
-        <span class="team-name ${t1.p?'placeholder':''}">${t1.n}${t1.p?'':`<span class="code">${t1.c}</span>`}</span>
+        ${teamHTML(t1)}
         ${played ? `<span class="score">${r[0]}</span>` : ''}
       </div>
       <div class="team-row ${loser2?'loser':''}">
-        <span class="team-name ${t2.p?'placeholder':''}">${t2.n}${t2.p?'':`<span class="code">${t2.c}</span>`}</span>
+        ${teamHTML(t2)}
         ${played ? `<span class="score">${r[1]}</span>` : '<span class="no-score">—</span>'}
       </div>
       <div class="venue">${venueLine}</div>
@@ -598,9 +596,15 @@ function filterMatches(matches){
     f = f.filter(m=>m.d===td);
   }
   if(activeFilters.has('moon')) f = f.filter(isMoon);
-  ['esp','uru','can'].forEach(k=>{
-    if(activeFilters.has(k)) f = f.filter(m=>isFav(m,k));
-  });
+  // Filtros por slot de favorito (fav0, fav1, fav2)
+  for(let s=0; s<3; s++){
+    if(activeFilters.has('fav'+s)){
+      const teamK = state.favs[s];
+      if(teamK){
+        f = f.filter(m => !m.h.p && !m.a.p && (m.h.k===teamK || m.a.k===teamK));
+      }
+    }
+  }
   return f;
 }
 
@@ -671,9 +675,10 @@ function renderGrupos(){
     teams.forEach((t,i)=>{
       const dg = t.gf-t.gc;
       const dgStr = dg>0?`+${dg}`:dg;
-      const favCls = FAV_ESP.includes(t.k)?'fav-esp':FAV_URU.includes(t.k)?'fav-uru':FAV_CAN.includes(t.k)?'fav-can':'';
+      const slot = favSlot(t.k);
+      const favCls = slot>=0 ? 'fav-slot-'+slot : '';
       html += `<tr class="${i<2?'qualified':''} ${favCls}">
-        <td>${t.n}</td><td>${t.pj}</td><td>${dgStr}</td><td class="pts">${t.pt}</td>
+        <td><span class="flag">${flag(t.k)}</span>${t.n}</td><td>${t.pj}</td><td>${dgStr}</td><td class="pts">${t.pt}</td>
       </tr>`;
     });
     html += `</tbody></table></div>`;
@@ -860,56 +865,23 @@ function showStatus(msg, type){
 }
 
 // ═══════ FILTROS Y TABS ═══════
-document.getElementById('chips').addEventListener('click', e=>{
-  const c = e.target.closest('.chip');
-  if(!c) return;
-  if(c.id==='favPick'){ openFavSelector(); return; }
-  const f = c.dataset.filter;
-  if(!f) return;
-  if(activeFilters.has(f)){ activeFilters.delete(f); c.classList.remove('on'); }
-  else { activeFilters.add(f); c.classList.add('on'); }
-  if(activeView!=='agenda'){ activeView='agenda'; updateTabs(); }
-  render();
+document.querySelectorAll('.chip').forEach(c=>{
+  c.onclick = ()=>{
+    const f = c.dataset.filter;
+    if(activeFilters.has(f)){
+      activeFilters.delete(f);
+      c.classList.remove('on');
+    } else {
+      activeFilters.add(f);
+      c.classList.add('on');
+    }
+    if(activeView!=='agenda'){
+      activeView='agenda';
+      updateTabs();
+    }
+    render();
+  };
 });
-
-// ═══════ SELECTOR DE FAVORITOS ═══════
-let favTmp=[], favCountTimer;
-function updateFavCount(msg){
-  const el=document.getElementById('favCount');
-  if(msg){ el.textContent=msg; el.className='sub warn'; clearTimeout(favCountTimer);
-    favCountTimer=setTimeout(()=>updateFavCount(),1600); return; }
-  el.textContent=`Elige hasta 3 · llevas ${favTmp.length}`; el.className='sub';
-}
-function openFavSelector(){
-  favTmp = state.favs.slice(0,3);
-  document.getElementById('favGrid').innerHTML = ALL_TEAMS.map(t=>{
-    const sel = favTmp.includes(t.k)?'sel':'';
-    return `<button class="fav-tbtn ${sel}" data-k="${t.k}">${flagOf(t.c)} ${t.n}</button>`;
-  }).join('');
-  updateFavCount();
-  document.getElementById('favOvl').classList.add('show');
-}
-document.getElementById('favGrid').addEventListener('click', e=>{
-  const b=e.target.closest('.fav-tbtn'); if(!b) return;
-  const k=b.dataset.k;
-  if(favTmp.includes(k)){ favTmp=favTmp.filter(x=>x!==k); b.classList.remove('sel'); }
-  else { if(favTmp.length>=3){ updateFavCount('Máximo 3: quita uno antes de añadir otro'); return; }
-    favTmp.push(k); b.classList.add('sel'); }
-  updateFavCount();
-});
-document.getElementById('favCancel').onclick = ()=>document.getElementById('favOvl').classList.remove('show');
-document.getElementById('favOvl').addEventListener('click', e=>{
-  if(e.target.id==='favOvl') document.getElementById('favOvl').classList.remove('show');
-});
-document.getElementById('favSave').onclick = ()=>{
-  state.favs = favTmp.slice(0,3);
-  refreshFavSlots();
-  FAV_SLOTS.forEach((sl,i)=>{ if(!state.favs[i]) activeFilters.delete(sl); });
-  saveState();
-  renderFavChips();
-  document.getElementById('favOvl').classList.remove('show');
-  render();
-};
 function updateTabs(){
   document.querySelectorAll('.tab').forEach(t=>{
     t.classList.toggle('on', t.dataset.view===activeView);
@@ -927,8 +899,109 @@ document.querySelectorAll('.tab').forEach(t=>{
   };
 });
 
+
+// ═══════ FAVORITOS DINÁMICOS ═══════
+const ALL_TEAMS = (() => {
+  const seen = new Set();
+  const out = [];
+  MATCHES.forEach(m => {
+    [m.h, m.a].forEach(t => {
+      if(!t.p && !seen.has(t.k)){
+        seen.add(t.k);
+        out.push({k:t.k, n:t.n});
+      }
+    });
+  });
+  return out.sort((a,b)=>a.n.localeCompare(b.n,'es'));
+})();
+
+function renderFavChips(){
+  const cont = document.getElementById('favChips');
+  let html = '';
+  (state.favs || []).forEach((k, idx) => {
+    if(!k) return;
+    const team = ALL_TEAMS.find(t => t.k === k);
+    if(!team) return;
+    const on = activeFilters.has('fav'+idx) ? 'on' : '';
+    html += `<button class="chip fav-slot-${idx} ${on}" data-filter="fav${idx}"><span class="flag">${flag(k)}</span>${team.n}</button>`;
+  });
+  cont.innerHTML = html;
+  // Re-bind para los nuevos chips
+  cont.querySelectorAll('.chip').forEach(c => {
+    c.onclick = ()=>{
+      const f = c.dataset.filter;
+      if(activeFilters.has(f)){ activeFilters.delete(f); c.classList.remove('on'); }
+      else { activeFilters.add(f); c.classList.add('on'); }
+      if(activeView!=='agenda'){ activeView='agenda'; updateTabs(); }
+      render();
+    };
+  });
+}
+
+let favSelection = [];
+function openFavModal(){
+  favSelection = [...(state.favs || [])];
+  const grid = document.getElementById('favGrid');
+  grid.innerHTML = ALL_TEAMS.map(t => {
+    const slot = favSelection.indexOf(t.k);
+    const cls = slot >= 0 ? 'sel-'+slot : '';
+    return `<button class="fav-tbtn ${cls}" data-k="${t.k}"><span class="flag">${flag(t.k)}</span>${t.n}</button>`;
+  }).join('');
+  updateFavInfo();
+  grid.querySelectorAll('.fav-tbtn').forEach(b => {
+    b.onclick = () => {
+      const k = b.dataset.k;
+      const idx = favSelection.indexOf(k);
+      if(idx >= 0){
+        favSelection.splice(idx, 1);
+      } else if(favSelection.length >= 3){
+        const info = document.getElementById('favInfo');
+        info.textContent = '⚠️ Máximo 3 equipos. Quita uno para añadir otro.';
+        info.classList.add('warn');
+        setTimeout(updateFavInfo, 1800);
+        return;
+      } else {
+        favSelection.push(k);
+      }
+      // Repintar selecciones
+      grid.querySelectorAll('.fav-tbtn').forEach(bt => {
+        const s = favSelection.indexOf(bt.dataset.k);
+        bt.className = 'fav-tbtn' + (s>=0 ? ' sel-'+s : '');
+      });
+      updateFavInfo();
+    };
+  });
+  document.getElementById('favModal').classList.add('show');
+}
+function updateFavInfo(){
+  const info = document.getElementById('favInfo');
+  info.classList.remove('warn');
+  const n = favSelection.length;
+  info.textContent = n === 0 ? 'Elige hasta 3 equipos' :
+    n === 3 ? '3 elegidos · toca uno para quitarlo' :
+    `${n} elegido${n>1?'s':''} · puedes añadir ${3-n} más`;
+}
+function closeFavModal(){
+  document.getElementById('favModal').classList.remove('show');
+}
+document.getElementById('favPickBtn').onclick = openFavModal;
+document.getElementById('favCancel').onclick = closeFavModal;
+document.getElementById('favModal').addEventListener('click', e => {
+  if(e.target.id === 'favModal') closeFavModal();
+});
+document.getElementById('favSave').onclick = () => {
+  state.favs = favSelection.slice(0, 3);
+  // Limpiar filtros de slots vacíos
+  for(let s=0; s<3; s++){
+    if(!state.favs[s]) activeFilters.delete('fav'+s);
+  }
+  saveState();
+  closeFavModal();
+  renderFavChips();
+  render();
+};
+
 // ═══════ INIT ═══════
-refreshFavSlots();
 renderFavChips();
 render();
 
